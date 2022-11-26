@@ -1,9 +1,18 @@
-let currentUrl = '/rasp?groupId=531873998';
+let currentUrl = '/rasp?groupId=531030143';
 let currentWeek;
 let currentDay = new Date().getDay() === 6 ? 5 : new Date().getDay();
 let styleSheet = document.createElement("style");
+styleSheet.classList.add("style-sheet");
 
-fetch('/rasp?groupId=531873998')
+window.addEventListener("resize", () => {
+    if (window.innerWidth < 481) {
+        enableMobileActions();
+    } else if (document.querySelector(".style-sheet")) {
+        document.head.removeChild(styleSheet);
+    }
+});
+
+fetch('/rasp?groupId=531030143')
     .then((data) => data.json())
     .then((res) => {
         console.log(res);
@@ -15,12 +24,12 @@ fetch('/rasp?groupId=531873998')
             document.querySelector("#previousWeek").style.visibility = "visible";
         }
 
-        fetch('/groups')
+        fetch('/groupsAndTeachers')
             .then((data) => data.json())
             .then((res) => {
                 console.log(res);
                 let selectElement = document.querySelector("#select");
-                for (let group of res.groups) {
+                for (let group of res.groupsAndTeachers) {
                     let groupElement = document.createElement("option");
                     groupElement.innerHTML = group.name;
                     groupElement.setAttribute("value", group.link);
@@ -28,6 +37,7 @@ fetch('/rasp?groupId=531873998')
                 }
                 selectElement.addEventListener("change", () => {
                     getNewData(selectElement.value);
+                    document.querySelector(".selected-group").innerHTML = res.groupsAndTeachers.find((a) => a.link === selectElement.value).name;
                 })
             })
     })
@@ -83,7 +93,7 @@ function generateSchedule(data) {
     }
     table.insertRow();
     if (data.dates.length === 0) {
-        table.querySelector("tr").insertCell().appendChild(document.createTextNode("Расписание для этой группы отсутствует"));
+        table.querySelector("tr").insertCell().appendChild(document.createTextNode("Расписание отсутствует"));
         return;
     }
     table.querySelector("tr").insertCell().appendChild(document.createTextNode("Время"));
@@ -113,7 +123,10 @@ function generateSchedule(data) {
             resultDiv.innerHTML = `${dayData.subject}<br>${dayData.place}<br>`;
             let teacherLink = document.createElement("div");
             teacherLink.innerHTML = JSON.parse(dayData.teacher).name;
-            teacherLink.addEventListener("click", () => getNewData(JSON.parse(dayData.teacher).link));
+            teacherLink.addEventListener("click", () => {
+                getNewData(JSON.parse(dayData.teacher).link);
+                document.querySelector(".selected-group").innerHTML = JSON.parse(dayData.teacher).name;
+            });
             teacherLink.classList.add("teacher-link");
             resultDiv.appendChild(teacherLink);
             for (let group of groupsInfo) {
@@ -122,7 +135,10 @@ function generateSchedule(data) {
                 groupLink.innerHTML = parsedGroup.name;
                 if (parsedGroup.link) {
                     groupLink.classList.add("group-link");
-                    groupLink.addEventListener("click", () => getNewData(parsedGroup.link));
+                    groupLink.addEventListener("click", () => {
+                        getNewData(parsedGroup.link);
+                        document.querySelector(".selected-group").innerHTML = parsedGroup.name;
+                    });
                 }
                 resultDiv.appendChild(groupLink);
             }

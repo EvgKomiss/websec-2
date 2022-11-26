@@ -7,6 +7,7 @@ const server = http.Server(app);
 const path = require('path');
 const bp = require('body-parser');
 const HTMLParser = require('node-html-parser');
+const fs = require('fs');
 
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
@@ -32,9 +33,16 @@ app.get('/rasp', (req, res) => {
     };
 })
 
-app.get('/groups', (req, res) => {
+app.get('/groupsAndTeachers', (req, res) => {
+    res.sendFile(path.join(path.join(__dirname, 'groupsAndTeachers.json')));
+})
+
+function saveGroupsAndTeachers() {
     let allGroupsHTMLs = [];
-    let result = { groups: [] }
+    let allTeachersHTMLs = [];
+    let result = { groupsAndTeachers: [] };
+    let groupsCount = 0;
+    let teachersCount = 0;
     for (let i = 1; i < 6; i++) {
         let request = new XMLHttpRequest();
         let url = "https://ssau.ru/rasp/faculty/492430598?course=" + i;
@@ -42,18 +50,44 @@ app.get('/groups', (req, res) => {
         request.send(null);
         request.onreadystatechange = () => {
             if (request.readyState == 4) {
+                groupsCount++;
                 allGroupsHTMLs.push(request.responseText);
-                if (i === 5) {
+                if (groupsCount === 5) {
                     for (let group of allGroupsHTMLs) {
                         let parser = new htmlParser(group);
-                        result.groups.push(...parser.getGroups().groups);
+                        result.groupsAndTeachers.push(...parser.getGroups().groups);
                     }
-                    res.send(JSON.stringify(result));
+                    if (groupsCount === 5 && teachersCount === 115) {
+                        fs.writeFile('groupsAndTeachers.json', JSON.stringify(result), 'utf8', () => console.log('Saved to file'));
+                    }
                 }
             }
         };
     }
-})
+    for (let i = 1; i < 116; i++) {
+        let request = new XMLHttpRequest();
+        let url = "https://ssau.ru/staff?page=" + i;
+        request.open("GET", url, true);
+        request.send(null);
+        request.onreadystatechange = () => {
+            if (request.readyState == 4) {
+                teachersCount++;
+                allTeachersHTMLs.push(request.responseText);
+                if (teachersCount === 115) {
+                    for (let teacher of allTeachersHTMLs) {
+                        let parser = new htmlParser(teacher);
+                        result.groupsAndTeachers.push(...parser.getTeachers().teachers);
+                    }
+                    if (groupsCount === 5 && teachersCount === 115) {
+                        fs.writeFile('groupsAndTeachers.json', JSON.stringify(result), 'utf8', () => console.log('Saved to file'));
+                    }
+                }
+            }
+        };
+    }
+}
+
+// saveGroupsAndTeachers();
 
 class htmlParser {
     constructor(htmlString) {
@@ -67,6 +101,17 @@ class htmlParser {
         for (let group of groups) {
             const id = group.getAttribute("href").replace(/\D/g, '');
             result.groups.push({ name: group.innerText, link: `/rasp?groupId=${id}` })
+        }
+        return result;
+    }
+
+    getTeachers() {
+        let root = HTMLParser.parse(this.html);
+        let teachers = root.querySelectorAll(".list-group-item > a");
+        let result = { teachers: [] };
+        for (let teacher of teachers) {
+            const id = teacher.getAttribute("href").replace(/\D/g, '');
+            result.teachers.push({ name: teacher.innerText, link: `/rasp?staffId=${id}` })
         }
         return result;
     }

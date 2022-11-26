@@ -36,7 +36,7 @@ table tbody tr:nth-child(odd) {
 }
 
 select {
-    width: 30%;
+    width: 40%;
     border: 1px solid var(--select-border);
     padding: 8px 20px;
     font-size: 20px;
@@ -57,8 +57,12 @@ select {
 
 .header  {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     margin: 20px 0px 0px 0px;
+}
+
+.info {
+    text-align: center;
 }
 
 .actions > #previousWeek, .actions > #previousDay, .actions > #nextWeek, .actions > #nextDay {
@@ -142,9 +146,7 @@ button:active {
     }
 
     select {
-        min-width: 6ch;
-        max-width: 15ch;
-        max-height: 25px;
+        min-width: 16ch;
         padding: 5px 10px;
         font-size: 10px;
         margin-top: 5px;
@@ -153,5 +155,9 @@ button:active {
     .schedule-container {
         width: 100%;
         margin: 0 auto;
+    }
+
+    .selected-group {
+        font-size: 10px;
     }
 }
