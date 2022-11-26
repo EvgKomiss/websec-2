@@ -38,6 +38,7 @@ fetch('/rasp?groupId=531030143')
                 selectElement.addEventListener("change", () => {
                     getNewData(selectElement.value);
                     document.querySelector(".selected-group").innerHTML = res.groupsAndTeachers.find((a) => a.link === selectElement.value).name;
+                    selectElement.value = "Выбрать";
                 })
             })
     })
