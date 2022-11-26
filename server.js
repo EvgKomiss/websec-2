@@ -34,7 +34,7 @@ app.get('/rasp', (req, res) => {
 })
 
 app.get('/groupsAndTeachers', (req, res) => {
-    res.sendFile(path.join(path.join(__dirname, 'groupsAndTeachers.json')));
+    res.sendFile(path.join(__dirname, 'groupsAndTeachers.json'));
 })
 
 function saveGroupsAndTeachers() {
